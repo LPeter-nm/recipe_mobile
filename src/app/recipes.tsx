@@ -1,11 +1,13 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ScrollView, Text, View, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from "react-native";
+import { useEffect, useState, useRef } from "react";
+import { ScrollView, Text, View, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Animated } from "react-native";
 
 const Recipes = () => {
   const router = useRouter();
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
     fetch('https://dummyjson.com/recipes')
@@ -13,12 +15,128 @@ const Recipes = () => {
       .then((data) => {
         setRecipes(data.recipes);
         setLoading(false);
+        
+        // Animação após carregar os dados
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]).start();
       })
       .catch(err => {
         console.error('Erro ao buscar receitas:', err);
         setLoading(false);
       });
   }, []);
+
+  const AnimatedRecipeCard = ({ recipe, index, onPress }) => {
+    const cardScale = useRef(new Animated.Value(1)).current;
+    const cardOpacity = useRef(new Animated.Value(0)).current;
+    const cardTranslateY = useRef(new Animated.Value(50)).current;
+
+    useEffect(() => {
+      // Animação escalonada para cada card
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 500,
+          delay: index * 100, // Delay baseado no índice
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardTranslateY, {
+          toValue: 0,
+          duration: 600,
+          delay: index * 100,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    const handlePressIn = () => {
+      Animated.spring(cardScale, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(cardScale, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    return (
+      <Animated.View
+        style={[
+          {
+            opacity: cardOpacity,
+            transform: [
+              { translateY: cardTranslateY },
+              { scale: cardScale }
+            ]
+          }
+        ]}
+      >
+        <TouchableOpacity
+          style={[
+            styles.recipeCard,
+            index === recipes.length - 1 && styles.lastCard
+          ]}
+          onPress={onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={1}
+        >
+          <Image 
+            source={{ uri: recipe.image }} 
+            style={styles.recipeImage}
+            resizeMode="cover"
+          />
+          
+          <View style={styles.cardContent}>
+            <Text style={styles.recipeName}>{recipe.name}</Text>
+            
+            <View style={styles.recipeInfo}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Tempo:</Text>
+                <Text style={styles.infoValue}>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</Text>
+              </View>
+              
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Porções:</Text>
+                <Text style={styles.infoValue}>{recipe.servings}</Text>
+              </View>
+              
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>Dificuldade:</Text>
+                <Text style={styles.infoValue}>{recipe.difficulty}</Text>
+              </View>
+            </View>
+
+            <View style={styles.tagsContainer}>
+              {recipe.tags?.slice(0, 2).map((tag, tagIndex) => (
+                <View key={tagIndex} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          
+          <View style={styles.arrow}>
+            <Text style={styles.arrowText}>›</Text>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   if (loading) {
     return (
@@ -31,10 +149,18 @@ const Recipes = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <Animated.View 
+        style={[
+          styles.header,
+          { 
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
         <Text style={styles.title}>Lista de Receitas</Text>
         <Text style={styles.subtitle}>{recipes.length} receitas disponíveis</Text>
-      </View>
+      </Animated.View>
 
       <ScrollView 
         style={styles.scrollView}
@@ -42,54 +168,21 @@ const Recipes = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {recipes.map((recipe, index) => (
-          <TouchableOpacity
+          <AnimatedRecipeCard
             key={recipe.id}
-            style={[
-              styles.recipeCard,
-              index === recipes.length - 1 && styles.lastCard
-            ]}
-            onPress={() => router.push(`/recipes/${recipe.id}?ingredients=${recipe.ingredients}&instructions=${recipe.instructions}&image=${recipe.image}&name=${recipe.name}`)}
-            activeOpacity={0.7}
-          >
-            <Image 
-              source={{ uri: recipe.image }} 
-              style={styles.recipeImage}
-              resizeMode="cover"
-            />
-            
-            <View style={styles.cardContent}>
-              <Text style={styles.recipeName}>{recipe.name}</Text>
-              
-              <View style={styles.recipeInfo}>
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Tempo:</Text>
-                  <Text style={styles.infoValue}>{recipe.prepTimeMinutes + recipe.cookTimeMinutes} min</Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Porções:</Text>
-                  <Text style={styles.infoValue}>{recipe.servings}</Text>
-                </View>
-                
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>Dificuldade:</Text>
-                  <Text style={styles.infoValue}>{recipe.difficulty}</Text>
-                </View>
-              </View>
-
-              <View style={styles.tagsContainer}>
-                {recipe.tags?.slice(0, 2).map((tag, tagIndex) => (
-                  <View key={tagIndex} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-            
-            <View style={styles.arrow}>
-              <Text style={styles.arrowText}>›</Text>
-            </View>
-          </TouchableOpacity>
+            recipe={recipe}
+            index={index}
+            onPress={() => {
+              // Animação de saída antes da navegação
+              Animated.timing(fadeAnim, {
+                toValue: 0.7,
+                duration: 200,
+                useNativeDriver: true,
+              }).start(() => {
+                router.push(`/recipes/${recipe.id}?ingredients=${recipe.ingredients}&instructions=${recipe.instructions}&image=${recipe.image}&name=${recipe.name}`);
+              });
+            }}
+          />
         ))}
       </ScrollView>
     </View>

@@ -1,34 +1,88 @@
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import { StyleSheet, Text, View, ScrollView, Image } from "react-native";
+import { StyleSheet, Text, View, ScrollView, Image, Animated } from "react-native";
+import { useEffect, useRef } from "react";
 
 const Recipe = () => {
-  const { id, ingredients, instructions, image, name } = useLocalSearchParams()
+  const { id, ingredients, instructions, image, name } = useLocalSearchParams();
+  
+  // Animações
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+  useEffect(() => {
+    // Animação de entrada
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
   
   return ( 
-    <ScrollView style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image 
-          source={{ uri: image as string }} 
-          style={styles.recipeImage}
-          resizeMode="cover"
-        />
-        <View style={styles.imageOverlay}>
-          <Text style={styles.title}>{name || `Receita #${id}`}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ingredientes</Text>
-          <Text style={styles.text}>{ingredients}</Text>
-        </View>
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Animated.View 
+          style={[
+            styles.imageContainer,
+            { 
+              transform: [{ scale: scaleAnim }] 
+            }
+          ]}
+        >
+          <Image 
+            source={{ uri: image as string }} 
+            style={styles.recipeImage}
+            resizeMode="cover"
+          />
+          <View style={styles.imageOverlay}>
+            <Animated.Text 
+              style={[
+                styles.title,
+                { 
+                  transform: [{ translateY: slideAnim }],
+                  opacity: fadeAnim 
+                }
+              ]}
+            >
+              {name || `Receita #${id}`}
+            </Animated.Text>
+          </View>
+        </Animated.View>
         
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Instruções</Text>
-          <Text style={styles.text}>{instructions}</Text>
-        </View>
-      </View>
-    </ScrollView>
+        <Animated.View 
+          style={[
+            styles.content,
+            { 
+              transform: [{ translateY: slideAnim }],
+              opacity: fadeAnim 
+            }
+          ]}
+        >
+          <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+            <Text style={styles.sectionTitle}>Ingredientes</Text>
+            <Text style={styles.text}>{ingredients}</Text>
+          </Animated.View>
+          
+          <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+            <Text style={styles.sectionTitle}>Instruções</Text>
+            <Text style={styles.text}>{instructions}</Text>
+          </Animated.View>
+        </Animated.View>
+      </ScrollView>
+    </Animated.View>
    );
 }
  
@@ -41,7 +95,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    height: 250,
+    height: 300,
+    overflow: 'hidden',
   },
   recipeImage: {
     width: '100%',
@@ -56,7 +111,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: 'center',
@@ -96,4 +151,4 @@ const styles = StyleSheet.create({
     color: '#34495e',
     textAlign: 'justify',
   },
-})
+});
