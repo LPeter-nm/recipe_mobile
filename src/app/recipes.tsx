@@ -61,7 +61,6 @@ const Recipes = () => {
     setCurrentPage(1); 
   }, [allRecipes, searchQuery]);
 
-  // Lógica de Paginação
   const indexOfLastRecipe = currentPage * recipesPerPage;
   const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
   const currentRecipes = filteredRecipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
