@@ -5,13 +5,11 @@ import { useEffect, useRef } from "react";
 const Recipe = () => {
   const { id, ingredients, instructions, image, name } = useLocalSearchParams();
   
-  // Animações
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-    // Animação de entrada
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -20,7 +18,7 @@ const Recipe = () => {
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 600,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.timing(scaleAnim, {

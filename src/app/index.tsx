@@ -1,33 +1,21 @@
 import { useRouter } from 'expo-router';
-import { Text, View, StyleSheet, ImageBackground, TouchableOpacity, Animated } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native'; // Adicionado Image
 import { useEffect, useRef } from 'react';
 
 const Index = () => {
   const router = useRouter();
-  
-  // Animações
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const buttonSlideAnim = useRef(new Animated.Value(100)).current;
 
   useEffect(() => {
-    // Animação de entrada
     Animated.sequence([
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 700,
           useNativeDriver: true,
         }),
       ]),
@@ -61,20 +49,6 @@ const Index = () => {
       ]).start();
     }, []);
 
-    const handlePressIn = () => {
-      Animated.spring(buttonScale, {
-        toValue: 0.95,
-        useNativeDriver: true,
-      }).start();
-    };
-
-    const handlePressOut = () => {
-      Animated.spring(buttonScale, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-    };
-
     return (
       <Animated.View
         style={[
@@ -90,10 +64,8 @@ const Index = () => {
         <TouchableOpacity
           style={[styles.button, style]}
           onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
           activeOpacity={1}
-        >
+        >    
           <Text style={styles.buttonText}>{title}</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -101,18 +73,13 @@ const Index = () => {
   };
 
   return (
-    <ImageBackground
-      source={{ uri: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80' }}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
+    <View style={{height: '100%', backgroundColor: 'rgb(255, 208, 0)'}}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Animated.View
             style={[
               styles.headerContainer,
               {
-                opacity: fadeAnim,
                 transform: [
                   { translateY: slideAnim },
                   { scale: scaleAnim }
@@ -120,9 +87,12 @@ const Index = () => {
               }
             ]}
           >
+            <Image
+              source={require('../../assets/images/chefe-de-cozinha.png')} 
+              style={styles.image} 
+            />
             <Text style={styles.welcomeTitle}>Seja Bem-vindo</Text>
             <Text style={styles.subtitle}>Descubra receitas incríveis</Text>
-            <View style={styles.decorativeLine} />
           </Animated.View>
 
           <Animated.View
@@ -138,7 +108,7 @@ const Index = () => {
               title="🍳 Lista de Receitas"
               onPress={() => {
                 Animated.timing(fadeAnim, {
-                  toValue: 0.7,
+                  toValue: 1,
                   duration: 200,
                   useNativeDriver: true,
                 }).start(() => {
@@ -153,7 +123,7 @@ const Index = () => {
               title="ℹ️ Sobre"
               onPress={() => {
                 Animated.timing(fadeAnim, {
-                  toValue: 0.7,
+                  toValue: 1,
                   duration: 200,
                   useNativeDriver: true,
                 }).start(() => {
@@ -162,6 +132,7 @@ const Index = () => {
               }}
               style={styles.secondaryButton}
               delay={400}
+              
             />
           </Animated.View>
 
@@ -178,18 +149,13 @@ const Index = () => {
           </Animated.View>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 export default Index;
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
@@ -204,7 +170,11 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     alignItems: 'center',
-    marginTop: 60,
+  },
+  image: { 
+    width: 150, 
+    height: 150,
+    marginBottom: 20, 
   },
   welcomeTitle: {
     fontSize: 36,
@@ -226,13 +196,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  decorativeLine: {
-    width: 80,
-    height: 3,
-    backgroundColor: '#e74c3c',
-    borderRadius: 2,
-    marginTop: 10,
-  },
+
   buttonsContainer: {
     width: '100%',
     alignItems: 'center',
